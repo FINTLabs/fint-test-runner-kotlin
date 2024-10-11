@@ -1,0 +1,12 @@
+version: '3'
+services:
+  metamodel:
+    image: ghcr.io/fintlabs/fint-core-consumer-metamodel:latest
+    networks:
+      - metamodel-bridge
+    ports:
+      - 8082:8080
+
+networks:
+  metamodel-bridge:
+    driver: bridge

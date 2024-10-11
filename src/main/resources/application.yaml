@@ -1,1 +1,3 @@
-spring.application.name=fint-test-runner-kotlin
+fint:
+  metamodel-url: http://localhost:8082
+  gateway-url: http://fint-customer-object-gateway.flais-io.svc.cluster.local:8080
