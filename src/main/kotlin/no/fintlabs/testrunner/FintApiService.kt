@@ -6,7 +6,6 @@ import no.fint.event.model.health.Health
 import no.fintlabs.testrunner.auth.AuthService
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 
@@ -22,13 +21,13 @@ class FintApiService(
     suspend fun getCacheSize(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
         getLong(baseUrl, "${endpoint}/last-updated", orgName, clientName)
 
-    suspend fun getHealthStatusResponse(baseUrl: String, endpoint: String, orgName: String, clientName: String): ResponseEntity<Event<Health>> {
+    suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String, clientName: String): Event<Health> {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
         return webClient.get()
             .uri("$baseUrl$endpoint/admin/health")
             .headers { it.addAll(headers) }
             .retrieve()
-            .toEntity(object : ParameterizedTypeReference<Event<Health>>() {})
+            .bodyToMono(object : ParameterizedTypeReference<Event<Health>>() {})
             .awaitSingle()
     }
 

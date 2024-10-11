@@ -17,15 +17,14 @@ class HealthTestService(
     suspend fun run(orgName: String, testRequest: TestRequest): HealthTestResult {
         return try {
             log.debug("Request: ${testRequest.baseUrl}${testRequest.endpoint}")
-            val response = fintApiService.getHealthStatusResponse(
-                testRequest.baseUrl,
-                testRequest.endpoint,
-                orgName,
-                testRequest.clientName
+            HealthTestResult.ofEventHealth(
+                fintApiService.getHealthEvent(
+                    testRequest.baseUrl,
+                    testRequest.endpoint,
+                    orgName,
+                    testRequest.clientName
+                )
             )
-            log.debug("Response: {}", response)
-            val responseBody = response.body ?: throw IllegalStateException("No response: ${response.statusCode}")
-            HealthTestResult.ofEventHealth(responseBody)
         } catch (exception: RestClientException) {
             HealthTestResult(
                 exception.message,
