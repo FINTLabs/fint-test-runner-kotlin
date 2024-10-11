@@ -1,3 +1,6 @@
 fint:
   metamodel-url: http://localhost:8082
   gateway-url: http://fint-customer-object-gateway.flais-io.svc.cluster.local:8080
+spring:
+  webflux:
+    base-path: /test-runner
