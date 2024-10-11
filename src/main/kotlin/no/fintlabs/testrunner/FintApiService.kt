@@ -17,10 +17,10 @@ class FintApiService(
 ) {
 
     suspend fun getLastUpdated(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
-        getLong(baseUrl, endpoint, orgName, clientName)
+        getLong(baseUrl, "${endpoint}/cache/size", orgName, clientName)
 
     suspend fun getCacheSize(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
-        getLong(baseUrl, endpoint, orgName, clientName)
+        getLong(baseUrl, "${endpoint}/last-updated", orgName, clientName)
 
     suspend fun getHealthStatusResponse(baseUrl: String, endpoint: String, orgName: String, clientName: String): ResponseEntity<Event<Health>> {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
@@ -34,12 +34,16 @@ class FintApiService(
 
     private suspend fun getLong(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
-        return webClient.get()
-            .uri("${baseUrl}${endpoint}")
-            .headers{ it.addAll(headers) }
-            .retrieve()
-            .bodyToMono(Long::class.java)
-            .awaitSingle()
+        return try {
+            webClient.get()
+                .uri("${baseUrl}${endpoint}")
+                .headers { it.addAll(headers) }
+                .retrieve()
+                .bodyToMono(Long::class.java)
+                .awaitSingle()
+        } catch (e: Exception) {
+            -1
+        }
     }
 
     private suspend fun createAuthorizationHeader(baseUrl: String, orgName: String, clientName: String): HttpHeaders =

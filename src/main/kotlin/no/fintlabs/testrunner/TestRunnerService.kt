@@ -20,17 +20,13 @@ class TestRunnerService(
             "Sorry but we can't find the service: ${testRequest.baseUrl}${testRequest.endpoint}"
         )
 
-    private suspend fun createTestResult(
-        orgName: String,
-        testRequest: TestRequest,
-        resources: MutableList<String>
-    ): TestResult =
+    private suspend fun createTestResult(orgName: String, testRequest: TestRequest, resources: MutableList<String>): TestResult =
         TestResult(
             resources.map { resource ->
                 val resourceResult = ResourceResult(
-                    resource = resource,
-                    lastUpdated = fintApiService.getLastUpdated(testRequest.baseUrl, testRequest.endpoint, orgName, testRequest.clientName),
-                    size = fintApiService.getCacheSize(testRequest.baseUrl, testRequest.endpoint, orgName, testRequest.clientName)
+                    resource,
+                    fintApiService.getLastUpdated(testRequest.baseUrl, testRequest.endpoint, orgName, testRequest.clientName),
+                    fintApiService.getCacheSize(testRequest.baseUrl, testRequest.endpoint, orgName, testRequest.clientName)
                 )
                 resourceResult.generateStatus()
                 resourceResult
