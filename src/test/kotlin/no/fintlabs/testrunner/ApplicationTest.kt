@@ -1,4 +1,4 @@
-package no.fintlabs
+package no.fintlabs.testrunner
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
