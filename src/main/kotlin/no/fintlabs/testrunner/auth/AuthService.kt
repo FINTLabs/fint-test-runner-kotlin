@@ -18,7 +18,7 @@ class AuthService(
 ) {
 
     suspend fun getNewAccessToken(orgName: String, clientName: String): String {
-        val decryptAuthResponse = decryptAuthResponse(orgName, clientName, getAuthResponse(orgName, clientName))
+        val decryptAuthResponse = decryptAuthResponse(clientName, getAuthResponse(orgName, clientName))
         return getTokenResponse(decryptAuthResponse).accessToken
     }
 
@@ -48,7 +48,7 @@ class AuthService(
         }
     }
 
-    private suspend fun decryptAuthResponse(orgName: String, clientName: String, authResponse: AuthResponse) =
+    private suspend fun decryptAuthResponse(clientName: String, authResponse: AuthResponse) =
         gatewayWebClient.post()
             .uri(createDecryptUri(clientName))
             .bodyValue(authResponse)
@@ -83,9 +83,5 @@ class AuthService(
                 "/client/decrypt"
         }
     }
-
-
-    private fun createDn(orgName: String, clientName: String): String =
-        "cn=${clientName},ou=clients,ou=${orgName.replace(".", "_")},ou=organisations,o=fint"
 
 }
