@@ -50,6 +50,7 @@ class FintApiService(
                 .bodyToMono<Map<String, Any>>()
                 .awaitSingle()
 
+            println("Body: $responseMap")
             val desiredValue = responseMap[mapKey] as? Number
 
             if (desiredValue != null) {
