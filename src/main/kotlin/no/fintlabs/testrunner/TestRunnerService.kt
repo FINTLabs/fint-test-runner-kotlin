@@ -25,8 +25,8 @@ class TestRunnerService(
             resources.map { resource ->
                 val resourceResult = ResourceResult(
                     resource,
-                    fintApiService.getLastUpdated(testRequest.baseUrl, testRequest.endpoint, orgName, testRequest.clientName),
-                    fintApiService.getCacheSize(testRequest.baseUrl, testRequest.endpoint, orgName, testRequest.clientName)
+                    fintApiService.getLastUpdated(testRequest.baseUrl, "${testRequest.endpoint}/$resource", orgName, testRequest.clientName),
+                    fintApiService.getCacheSize(testRequest.baseUrl, "${testRequest.endpoint}/$resource", orgName, testRequest.clientName)
                 )
                 resourceResult.generateStatus()
                 resourceResult
