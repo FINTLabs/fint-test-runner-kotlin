@@ -41,27 +41,20 @@ class FintApiService(
         clientName: String
     ): Long {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
-        println("Requesting to url: ${baseUrl}${endpoint} \nWith headers: $headers")
         return try {
             val responseMap = webClient.get()
-                .uri("${baseUrl}${endpoint}")
+                .uri("$baseUrl$endpoint")
                 .headers { it.addAll(headers) }
                 .retrieve()
                 .bodyToMono<Map<String, Any>>()
                 .awaitSingle()
 
-            println("Body: $responseMap")
-            val desiredValue = responseMap[mapKey] as? Number
-
-            if (desiredValue != null) {
-                desiredValue.toLong()
-            } else {
-                println("Key '$mapKey' not found or value is not a number.")
-                -1
-            }
+            (responseMap[mapKey] as? Number)?.toLong()
+                ?: (responseMap[mapKey] as? String)?.toLongOrNull()
+                ?: -1L
         } catch (e: Exception) {
-            println("ERROR OCCURRED: ${e.message}")
-            -1
+            println("ERROR: ${e.message}")
+            -1L
         }
     }
 
