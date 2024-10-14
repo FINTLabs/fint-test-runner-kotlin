@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 
 @Service
 class FintApiService(
@@ -16,10 +17,10 @@ class FintApiService(
 ) {
 
     suspend fun getLastUpdated(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
-        getLong(baseUrl, "${endpoint}/cache/size", orgName, clientName)
+        getLong(baseUrl, "${endpoint}/last-updated", "lastUpdated", orgName, clientName)
 
     suspend fun getCacheSize(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
-        getLong(baseUrl, "${endpoint}/last-updated", orgName, clientName)
+        getLong(baseUrl, "${endpoint}/cache/size", "size", orgName, clientName)
 
     suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String, clientName: String): Event<Health> {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
@@ -32,18 +33,33 @@ class FintApiService(
             .awaitSingle()
     }
 
-    private suspend fun getLong(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long {
+    private suspend fun getLong(
+        baseUrl: String,
+        endpoint: String,
+        mapKey: String,
+        orgName: String,
+        clientName: String
+    ): Long {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
         println("Requesting to url: ${baseUrl}${endpoint} \nWith headers: $headers")
         return try {
-            webClient.get()
+            val responseMap = webClient.get()
                 .uri("${baseUrl}${endpoint}")
                 .headers { it.addAll(headers) }
                 .retrieve()
-                .bodyToMono(Long::class.java)
+                .bodyToMono<Map<String, Any>>()
                 .awaitSingle()
+
+            val desiredValue = responseMap[mapKey] as? Number
+
+            if (desiredValue != null) {
+                desiredValue.toLong()
+            } else {
+                println("Key '$mapKey' not found or value is not a number.")
+                -1
+            }
         } catch (e: Exception) {
-            println("ERROR OCCURED: ${e.message}")
+            println("ERROR OCCURRED: ${e.message}")
             -1
         }
     }
