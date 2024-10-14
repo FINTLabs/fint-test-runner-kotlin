@@ -16,7 +16,7 @@ class HealthTestService(
 
     suspend fun run(orgName: String, testRequest: TestRequest): HealthTestResult {
         return try {
-            log.debug("Request: ${testRequest.baseUrl}${testRequest.endpoint}")
+            log.info("Request: ${testRequest.baseUrl}${testRequest.endpoint}")
             HealthTestResult.ofEventHealth(
                 fintApiService.getHealthEvent(
                     testRequest.baseUrl,
