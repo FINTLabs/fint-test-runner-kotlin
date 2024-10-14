@@ -23,6 +23,7 @@ class FintApiService(
 
     suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String, clientName: String): Event<Health> {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
+        println("Requesting to url: $baseUrl$endpoint/admin/health \nWith headers: $headers")
         return webClient.get()
             .uri("$baseUrl$endpoint/admin/health")
             .headers { it.addAll(headers) }
@@ -33,6 +34,7 @@ class FintApiService(
 
     private suspend fun getLong(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
+        println("Requesting to url: ${baseUrl}${endpoint} \nWith headers: $headers")
         return try {
             webClient.get()
                 .uri("${baseUrl}${endpoint}")
@@ -41,6 +43,7 @@ class FintApiService(
                 .bodyToMono(Long::class.java)
                 .awaitSingle()
         } catch (e: Exception) {
+            println("ERROR OCCURED: ${e.message}")
             -1
         }
     }
