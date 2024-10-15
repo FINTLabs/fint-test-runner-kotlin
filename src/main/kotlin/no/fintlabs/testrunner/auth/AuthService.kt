@@ -19,14 +19,14 @@ class AuthService(
 
     suspend fun getNewAccessToken(orgName: String, clientName: String): String {
         val clientNameLowercase = clientName.lowercase()
-        val decryptAuthResponse = decryptAuthResponse(clientNameLowercase, getAuthResponse(orgName, clientNameLowercase))
-        return getTokenResponse(decryptAuthResponse).accessToken
+        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, getAuthResponse(orgName, clientNameLowercase))
+        return getTokenResponse(decryptedAuthObject).accessToken
     }
 
-    private suspend fun getTokenResponse(decryptAuthResponse: AuthResponse): TokenResponse =
+    private suspend fun getTokenResponse(decryptedAuthObject: AuthObject): TokenResponse =
         idpWebClient.post()
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(BodyInserters.fromFormData(createFormData(decryptAuthResponse.`object`)))
+            .body(BodyInserters.fromFormData(createFormData(decryptedAuthObject)))
             .retrieve()
             .bodyToMono(TokenResponse::class.java)
             .awaitSingle()
@@ -55,7 +55,7 @@ class AuthService(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(authResponse)
             .retrieve()
-            .bodyToMono(AuthResponse::class.java)
+            .bodyToMono(AuthObject::class.java)
             .awaitSingle()
 
 
