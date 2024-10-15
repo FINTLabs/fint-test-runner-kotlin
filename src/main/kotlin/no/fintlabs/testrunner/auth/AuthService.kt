@@ -18,7 +18,8 @@ class AuthService(
 ) {
 
     suspend fun getNewAccessToken(orgName: String, clientName: String): String {
-        val decryptAuthResponse = decryptAuthResponse(clientName, getAuthResponse(orgName, clientName))
+        val clientNameLowercase = clientName.lowercase()
+        val decryptAuthResponse = decryptAuthResponse(clientNameLowercase, getAuthResponse(orgName, clientNameLowercase))
         return getTokenResponse(decryptAuthResponse).accessToken
     }
 
@@ -51,6 +52,7 @@ class AuthService(
     private suspend fun decryptAuthResponse(clientName: String, authResponse: AuthResponse) =
         gatewayWebClient.post()
             .uri(createDecryptUri(clientName))
+            .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(authResponse)
             .retrieve()
             .bodyToMono(AuthResponse::class.java)
