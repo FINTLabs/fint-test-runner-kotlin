@@ -18,11 +18,5 @@ data class TestRequest(
         message = "endpoint must start with '/' and contain valid path segments without a trailing slash"
     )
     val endpoint: String,
-
-    @field:NotBlank(message = "clientName must not be empty")
-    @field:Pattern(
-        regexp = "^.+@client\\.[^.]+\\.no\$",
-        message = "clientName must match '*@client.*.no'"
-    )
     val clientName: String
 )
