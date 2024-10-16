@@ -1,5 +1,8 @@
 package no.fintlabs.testrunner
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import no.fintlabs.testrunner.resource.ResourceRepository
 import no.fintlabs.testrunner.model.ResourceResult
 import no.fintlabs.testrunner.model.TestRequest
@@ -21,16 +24,20 @@ class TestRunnerService(
         )
 
     private suspend fun createTestResult(orgName: String, testRequest: TestRequest, resources: MutableList<String>): TestResult =
-        TestResult(
-            resources.map { resource ->
-                val resourceResult = ResourceResult(
-                    resource,
-                    fintApiService.getLastUpdated(testRequest.baseUrl, "${testRequest.endpoint}/$resource", orgName, testRequest.clientName),
-                    fintApiService.getCacheSize(testRequest.baseUrl, "${testRequest.endpoint}/$resource", orgName, testRequest.clientName)
-                )
-                resourceResult.generateStatus()
-                resourceResult
-            }
-        )
+        coroutineScope {
+            val resourceResults = resources.map { resource ->
+                async {
+                    val resourceResult = ResourceResult(
+                        resource,
+                        fintApiService.getLastUpdated(testRequest.baseUrl, "${testRequest.endpoint}/$resource", orgName, testRequest.clientName),
+                        fintApiService.getCacheSize(testRequest.baseUrl, "${testRequest.endpoint}/$resource", orgName, testRequest.clientName)
+                    )
+                    resourceResult.generateStatus()
+                    resourceResult
+                }
+            }.awaitAll()
+
+            TestResult(resourceResults)
+        }
 
 }
