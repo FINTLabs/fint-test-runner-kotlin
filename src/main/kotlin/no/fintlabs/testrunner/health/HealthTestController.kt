@@ -1,5 +1,6 @@
 package no.fintlabs.testrunner.health
 
+import jakarta.validation.Valid
 import no.fintlabs.testrunner.model.TestRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
@@ -15,7 +16,7 @@ class HealthTestController(
 ) {
 
     @PostMapping
-    suspend fun healthTest(@PathVariable orgName: String, @RequestBody testRequest: TestRequest) =
+    suspend fun healthTest(@PathVariable orgName: String, @Valid @RequestBody testRequest: TestRequest) =
         ResponseEntity.ok(healthTestService.run(orgName, testRequest))
 
 }

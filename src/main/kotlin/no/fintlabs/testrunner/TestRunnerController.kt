@@ -1,5 +1,6 @@
 package no.fintlabs.testrunner
 
+import jakarta.validation.Valid
 import no.fintlabs.testrunner.model.TestRequest
 import no.fintlabs.testrunner.model.TestResult
 import org.springframework.http.ResponseEntity
@@ -16,7 +17,7 @@ class TestRunnerController(
 ) {
 
     @PostMapping
-    suspend fun runTest(@PathVariable orgName: String, @RequestBody testRequest: TestRequest): ResponseEntity<TestResult> =
+    suspend fun runTest(@PathVariable orgName: String, @Valid @RequestBody testRequest: TestRequest): ResponseEntity<TestResult> =
         ResponseEntity.ok(testRunnerService.run(orgName, testRequest))
 
 }
