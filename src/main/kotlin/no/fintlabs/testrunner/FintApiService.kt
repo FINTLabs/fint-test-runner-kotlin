@@ -24,7 +24,6 @@ class FintApiService(
 
     suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String, clientName: String): Event<Health> {
         val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
-        println("Requesting to url: $baseUrl$endpoint/admin/health \nWith headers: $headers")
         return webClient.get()
             .uri("$baseUrl$endpoint/admin/health")
             .headers { it.addAll(headers) }
@@ -53,7 +52,6 @@ class FintApiService(
                 ?: (responseMap[mapKey] as? String)?.toLongOrNull()
                 ?: -1L
         } catch (e: Exception) {
-            println("ERROR: ${e.message}")
             -1L
         }
     }

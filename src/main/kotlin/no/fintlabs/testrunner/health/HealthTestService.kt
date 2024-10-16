@@ -12,11 +12,8 @@ class HealthTestService(
     val fintApiService: FintApiService
 ) {
 
-    private val log = LoggerFactory.getLogger(HealthTestService::class.java)
-
     suspend fun run(orgName: String, testRequest: TestRequest): HealthTestResult {
         return try {
-            log.info("Request: ${testRequest.baseUrl}${testRequest.endpoint}")
             HealthTestResult.ofEventHealth(
                 fintApiService.getHealthEvent(
                     testRequest.baseUrl,
