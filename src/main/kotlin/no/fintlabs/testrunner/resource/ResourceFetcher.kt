@@ -1,6 +1,5 @@
 package no.fintlabs.testrunner.resource
 
-import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 
