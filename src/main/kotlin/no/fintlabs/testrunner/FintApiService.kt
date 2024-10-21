@@ -62,8 +62,7 @@ class FintApiService(
                 set("x-org-id", "pwf.no")
                 set("x-client", "pwf_no_client")
             } else {
-                val accessToken = authService.getNewAccessToken(orgName, clientName)
-                set("Authorization", "Bearer $accessToken")
+                set("Authorization", "Bearer ${authService.getNewAccessToken(orgName, clientName)}")
             }
         }
 
