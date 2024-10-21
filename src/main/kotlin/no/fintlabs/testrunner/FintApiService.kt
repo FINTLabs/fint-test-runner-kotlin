@@ -1,9 +1,11 @@
 package no.fintlabs.testrunner
 
+import io.netty.util.internal.StringUtil
 import kotlinx.coroutines.reactor.awaitSingle
 import no.fint.event.model.Event
 import no.fint.event.model.health.Health
 import no.fintlabs.testrunner.auth.AuthService
+import no.fintlabs.testrunner.exception.InvalidAuthenticationException
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
@@ -62,6 +64,8 @@ class FintApiService(
                 set("x-org-id", "pwf.no")
                 set("x-client", "pwf_no_client")
             } else {
+                if (StringUtil.isNullOrEmpty(clientName))
+                    throw InvalidAuthenticationException(clientName)
                 set("Authorization", "Bearer ${authService.getNewAccessToken(orgName, clientName)}")
             }
         }
