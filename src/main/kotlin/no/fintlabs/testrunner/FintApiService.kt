@@ -25,13 +25,18 @@ class FintApiService(
         getLong(baseUrl, "${endpoint}/cache/size", "size", orgName, clientName)
 
     suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String, clientName: String): Event<Health> {
-        val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
-        return webClient.get()
-            .uri("$baseUrl$endpoint/admin/health")
-            .headers { it.addAll(headers) }
-            .retrieve()
-            .bodyToMono(object : ParameterizedTypeReference<Event<Health>>() {})
-            .awaitSingle()
+        try {
+            val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
+            return webClient.get()
+                .uri("$baseUrl$endpoint/admin/health")
+                .headers { it.addAll(headers) }
+                .retrieve()
+                .bodyToMono(object : ParameterizedTypeReference<Event<Health>>() {})
+                .awaitSingle()
+        } catch (e: Exception) {
+            println("Failed to fetch admin health: ${e.stackTrace}")
+            throw e
+        }
     }
 
     private suspend fun getLong(
