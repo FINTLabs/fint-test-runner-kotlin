@@ -19,8 +19,24 @@ class AuthService(
 
     suspend fun getNewAccessToken(orgName: String, clientName: String): String {
         val clientNameLowercase = clientName.lowercase()
-        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, getAuthResponse(orgName, clientNameLowercase))
+        val authResponse = getAuthResponse(orgName, clientNameLowercase)
+        val resetAuthResponse = resetAuthResponse(clientNameLowercase, authResponse)
+        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, resetAuthResponse)
         return getTokenResponse(decryptedAuthObject).accessToken
+    }
+
+    private suspend fun resetAuthResponse(clientName: String, authResponse: AuthResponse?): AuthResponse =
+        gatewayWebClient.get()
+            .uri(createResetUri(clientName))
+            .retrieve()
+            .bodyToMono(AuthResponse::class.java)
+            .awaitSingle()
+
+    private fun createResetUri(clientName: String): String {
+        return when {
+            clientName.contains("@adapter") -> "/adapter/password/reset"
+            else -> "/client/password/reset"
+        }
     }
 
     private suspend fun getTokenResponse(decryptedAuthObject: AuthObject): TokenResponse =
@@ -61,17 +77,18 @@ class AuthService(
 
     private suspend fun getAuthResponse(orgName: String, clientName: String) =
         gatewayWebClient.get()
-            .uri(createUri(orgName, clientName))
+            .uri(createDnUri(orgName, clientName))
             .retrieve()
             .bodyToMono(AuthResponse::class.java)
             .awaitSingle()
 
 
-    private fun createUri(orgName: String, clientName: String): String {
+    private fun createDnUri(orgName: String, clientName: String): String {
         val formattedOrgName = orgName.replace(".", "_")
         return when {
             clientName.contains("@adapter") ->
                 "/adapter/cn=$clientName,ou=adapters,ou=$formattedOrgName,ou=organisations,o=fint"
+
             else ->
                 "/client/cn=$clientName,ou=clients,ou=$formattedOrgName,ou=organisations,o=fint"
         }
@@ -81,6 +98,7 @@ class AuthService(
         return when {
             clientName.contains("@adapter") ->
                 "/adapter/decrypt"
+
             else ->
                 "/client/decrypt"
         }
