@@ -1,6 +1,8 @@
 package no.fintlabs.testrunner.auth
 
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import no.fintlabs.testrunner.auth.model.AuthObject
 import no.fintlabs.testrunner.auth.model.AuthResponse
 import no.fintlabs.testrunner.auth.model.TokenResponse
@@ -10,6 +12,7 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class AuthService(
@@ -17,12 +20,37 @@ class AuthService(
     val idpWebClient: WebClient
 ) {
 
+    private val tokenCache = ConcurrentHashMap<String, TokenResponse>()
+    private val mutexCache = ConcurrentHashMap<String, Mutex>()
+
     suspend fun getNewAccessToken(orgName: String, clientName: String): String {
-        val clientNameLowercase = clientName.lowercase()
-        val authResponse = getAuthResponse(orgName, clientNameLowercase)
-        val resetAuthResponse = resetAuthResponse(clientNameLowercase, authResponse)
-        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, resetAuthResponse)
-        return getTokenResponse(decryptedAuthObject).accessToken
+        val cacheKey = "$orgName|$clientName"
+
+        val cachedToken = tokenCache[cacheKey]
+
+        if (cachedToken != null && !tokenExpired(cachedToken)) {
+            return cachedToken.accessToken
+        } else {
+            val mutex = mutexCache.computeIfAbsent(cacheKey) { Mutex() }
+            return mutex.withLock {
+                val doubleCheckedToken = tokenCache[cacheKey]
+                if (doubleCheckedToken != null && !tokenExpired(doubleCheckedToken)) {
+                    doubleCheckedToken.accessToken
+                } else {
+                    val newToken = fetchNewAccessToken(orgName, clientName)
+                    tokenCache[cacheKey] = newToken
+                    newToken.accessToken
+                }
+            }
+        }
+    }
+
+    private fun tokenExpired(tokenResponse: TokenResponse): Boolean {
+        val currentTime = System.currentTimeMillis() / 1000
+        val tokenCreationTime = tokenResponse.createdAt
+        val expiresIn = tokenResponse.expiresIn
+
+        return (currentTime - tokenCreationTime) >= expiresIn
     }
 
     private suspend fun resetAuthResponse(clientName: String, authResponse: AuthResponse): AuthResponse =
@@ -40,13 +68,26 @@ class AuthService(
         }
     }
 
-    private suspend fun getTokenResponse(decryptedAuthObject: AuthObject): TokenResponse =
-        idpWebClient.post()
+    private suspend fun fetchNewAccessToken(orgName: String, clientName: String): TokenResponse {
+        val clientNameLowercase = clientName.lowercase()
+        val authResponse = getAuthResponse(orgName, clientNameLowercase)
+        val resetAuthResponse = resetAuthResponse(clientNameLowercase, authResponse)
+        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, resetAuthResponse)
+        val tokenResponse = getTokenResponse(decryptedAuthObject)
+        tokenResponse.createdAt = System.currentTimeMillis() / 1000
+        return tokenResponse
+    }
+
+    private suspend fun getTokenResponse(decryptedAuthObject: AuthObject): TokenResponse {
+        var createFormData = createFormData(decryptedAuthObject)
+        println("OK: $createFormData")
+        return idpWebClient.post()
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(BodyInserters.fromFormData(createFormData(decryptedAuthObject)))
+            .body(BodyInserters.fromFormData(createFormData))
             .retrieve()
             .bodyToMono(TokenResponse::class.java)
             .awaitSingle()
+    }
 
 
     private fun createFormData(authObject: AuthObject): MultiValueMap<String, String> =
