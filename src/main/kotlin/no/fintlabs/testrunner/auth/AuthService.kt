@@ -26,7 +26,7 @@ class AuthService(
     }
 
     private suspend fun resetAuthResponse(clientName: String, authResponse: AuthResponse?): AuthResponse =
-        gatewayWebClient.get()
+        gatewayWebClient.post()
             .uri(createResetUri(clientName))
             .retrieve()
             .bodyToMono(AuthResponse::class.java)
