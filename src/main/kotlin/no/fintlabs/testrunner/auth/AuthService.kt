@@ -25,9 +25,10 @@ class AuthService(
         return getTokenResponse(decryptedAuthObject).accessToken
     }
 
-    private suspend fun resetAuthResponse(clientName: String, authResponse: AuthResponse?): AuthResponse =
+    private suspend fun resetAuthResponse(clientName: String, authResponse: AuthResponse): AuthResponse =
         gatewayWebClient.post()
             .uri(createResetUri(clientName))
+            .bodyValue(authResponse)
             .retrieve()
             .bodyToMono(AuthResponse::class.java)
             .awaitSingle()
