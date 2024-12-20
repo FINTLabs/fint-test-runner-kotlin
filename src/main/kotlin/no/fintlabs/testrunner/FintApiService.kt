@@ -8,8 +8,10 @@ import no.fintlabs.testrunner.auth.AuthService
 import no.fintlabs.testrunner.exception.InvalidAuthenticationException
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Service
@@ -58,8 +60,11 @@ class FintApiService(
             (responseMap[mapKey] as? Number)?.toLong()
                 ?: (responseMap[mapKey] as? String)?.toLongOrNull()
                 ?: -1L
-        } catch (e: Exception) {
-            -1L
+        } catch (e: WebClientResponseException){
+            if (e.statusCode.equals(HttpStatus.FORBIDDEN)) {}
+            return -403L
+        } catch (e: Exception){
+            return -1L
         }
     }
 

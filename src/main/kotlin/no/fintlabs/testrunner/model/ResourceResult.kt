@@ -16,6 +16,9 @@ data class ResourceResult(
         if (lastUpdated.toInt() == -1 && size.toInt() == -1) {
             status = Status.FAILED
             message = "We had problems connecting to the endpoints."
+        }else if (lastUpdated == -403L) {
+            status = Status.PARTIALLY_FAILED
+            message = "Client does not have access to this component"
         } else if (lastUpdated.toInt() == 0 && size.toInt() == 0) {
             status = Status.FAILED
             message = "Cache has never been updated."
@@ -24,7 +27,7 @@ data class ResourceResult(
             message = "Cache have been updated, but cache is empty."
         } else if (isLastUpdatedToOld()) {
             status = Status.PARTIALLY_FAILED
-            message = "Cache have not been updated for ${30} minutes"
+            message = "Cache have not been updated in ${30} minutes"
         } else {
             status = Status.OK
         }
