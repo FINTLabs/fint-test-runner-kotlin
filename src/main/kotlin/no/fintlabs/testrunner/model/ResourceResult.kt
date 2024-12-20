@@ -1,6 +1,5 @@
 package no.fintlabs.testrunner.model
 
-import no.fintlabs.testrunner.model.Status
 import java.time.Duration
 import java.time.Instant
 
@@ -16,7 +15,7 @@ data class ResourceResult(
         if (lastUpdated.toInt() == -1 && size.toInt() == -1) {
             status = Status.FAILED
             message = "We had problems connecting to the endpoints."
-        }else if (lastUpdated == -403L) {
+        } else if (lastUpdated == -403L) {
             status = Status.PARTIALLY_FAILED
             message = "Client does not have access to this component"
         } else if (lastUpdated.toInt() == 0 && size.toInt() == 0) {
