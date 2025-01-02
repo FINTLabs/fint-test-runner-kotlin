@@ -25,6 +25,7 @@ class TestRunnerService(
 
     private suspend fun createTestResult(orgName: String, testRequest: TestRequest, resources: MutableList<String>): TestResult =
         coroutineScope {
+            println("Creating reslut for test ${testRequest}")
             val resourceResults = resources.map { resource ->
                 async {
                     val resourceResult = ResourceResult(

@@ -20,37 +20,26 @@ class AuthService(
     val idpWebClient: WebClient
 ) {
 
-    private val tokenCache = ConcurrentHashMap<String, TokenResponse>()
     private val mutexCache = ConcurrentHashMap<String, Mutex>()
 
     suspend fun getNewAccessToken(orgName: String, clientName: String): String {
         val cacheKey = "$orgName|$clientName"
 
-        val cachedToken = tokenCache[cacheKey]
-
-        if (cachedToken != null && !tokenExpired(cachedToken)) {
-            return cachedToken.accessToken
-        } else {
-            val mutex = mutexCache.computeIfAbsent(cacheKey) { Mutex() }
-            return mutex.withLock {
-                val doubleCheckedToken = tokenCache[cacheKey]
-                if (doubleCheckedToken != null && !tokenExpired(doubleCheckedToken)) {
-                    doubleCheckedToken.accessToken
-                } else {
-                    val newToken = fetchNewAccessToken(orgName, clientName)
-                    tokenCache[cacheKey] = newToken
-                    newToken.accessToken
-                }
-            }
+        val mutex = mutexCache.computeIfAbsent(cacheKey) { Mutex() }
+        return mutex.withLock {
+            val newToken = fetchNewAccessToken(orgName, clientName)
+            newToken.accessToken
         }
     }
 
-    private fun tokenExpired(tokenResponse: TokenResponse): Boolean {
-        val currentTime = System.currentTimeMillis() / 1000
-        val tokenCreationTime = tokenResponse.createdAt
-        val expiresIn = tokenResponse.expiresIn
-
-        return (currentTime - tokenCreationTime) >= expiresIn
+    private suspend fun fetchNewAccessToken(orgName: String, clientName: String): TokenResponse {
+        val clientNameLowercase = clientName.lowercase()
+        val authResponse = getAuthResponse(orgName, clientNameLowercase)
+        val resetAuthResponse = resetAuthResponse(clientNameLowercase, authResponse)
+        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, resetAuthResponse)
+        val tokenResponse = getTokenResponse(decryptedAuthObject)
+        tokenResponse.createdAt = System.currentTimeMillis() / 1000
+        return tokenResponse
     }
 
     private suspend fun resetAuthResponse(clientName: String, authResponse: AuthResponse): AuthResponse =
@@ -68,19 +57,8 @@ class AuthService(
         }
     }
 
-    private suspend fun fetchNewAccessToken(orgName: String, clientName: String): TokenResponse {
-        val clientNameLowercase = clientName.lowercase()
-        val authResponse = getAuthResponse(orgName, clientNameLowercase)
-        val resetAuthResponse = resetAuthResponse(clientNameLowercase, authResponse)
-        val decryptedAuthObject = decryptAuthResponse(clientNameLowercase, resetAuthResponse)
-        val tokenResponse = getTokenResponse(decryptedAuthObject)
-        tokenResponse.createdAt = System.currentTimeMillis() / 1000
-        return tokenResponse
-    }
-
     private suspend fun getTokenResponse(decryptedAuthObject: AuthObject): TokenResponse {
-        var createFormData = createFormData(decryptedAuthObject)
-        println("OK: $createFormData")
+        val createFormData = createFormData(decryptedAuthObject)
         return idpWebClient.post()
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .body(BodyInserters.fromFormData(createFormData))
@@ -88,7 +66,6 @@ class AuthService(
             .bodyToMono(TokenResponse::class.java)
             .awaitSingle()
     }
-
 
     private fun createFormData(authObject: AuthObject): MultiValueMap<String, String> =
         LinkedMultiValueMap<String, String>().apply {
@@ -116,7 +93,6 @@ class AuthService(
             .bodyToMono(AuthObject::class.java)
             .awaitSingle()
 
-
     private suspend fun getAuthResponse(orgName: String, clientName: String) =
         gatewayWebClient.get()
             .uri(createDnUri(orgName, clientName))
@@ -124,13 +100,11 @@ class AuthService(
             .bodyToMono(AuthResponse::class.java)
             .awaitSingle()
 
-
     private fun createDnUri(orgName: String, clientName: String): String {
         val formattedOrgName = orgName.replace(".", "_")
         return when {
             clientName.contains("@adapter") ->
                 "/adapter/cn=$clientName,ou=adapters,ou=$formattedOrgName,ou=organisations,o=fint"
-
             else ->
                 "/client/cn=$clientName,ou=clients,ou=$formattedOrgName,ou=organisations,o=fint"
         }
@@ -138,12 +112,8 @@ class AuthService(
 
     private fun createDecryptUri(clientName: String): String {
         return when {
-            clientName.contains("@adapter") ->
-                "/adapter/decrypt"
-
-            else ->
-                "/client/decrypt"
+            clientName.contains("@adapter") -> "/adapter/decrypt"
+            else -> "/client/decrypt"
         }
     }
-
 }
