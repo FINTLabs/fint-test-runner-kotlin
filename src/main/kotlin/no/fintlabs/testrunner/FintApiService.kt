@@ -63,7 +63,7 @@ class FintApiService(
                 ?: -1L
         } catch (e: WebClientResponseException){
             if (e.statusCode.equals(HttpStatus.FORBIDDEN))
-                println(e.stackTrace)
+                println(e)
                 return -403L
         } catch (e: Exception){
             print(e.stackTrace)
