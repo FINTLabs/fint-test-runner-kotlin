@@ -19,7 +19,7 @@ class TestRunnerService(
         resourceRepository.getResources(testRequest.endpoint)?.let { resources ->
             createTestResult(orgName, testRequest, resources)
         } ?: TestResult(
-            emptyList(),
+            emptySet(),
             "Sorry but we can't find the service: ${testRequest.baseUrl}${testRequest.endpoint}"
         )
 
@@ -38,7 +38,7 @@ class TestRunnerService(
                 }
             }.awaitAll()
 
-            TestResult(resourceResults)
+            TestResult(resourceResults.toSet())
         }
 
 }
