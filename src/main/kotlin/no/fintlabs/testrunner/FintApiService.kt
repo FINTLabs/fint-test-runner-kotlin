@@ -1,11 +1,9 @@
 package no.fintlabs.testrunner
 
-import io.netty.util.internal.StringUtil
 import kotlinx.coroutines.reactor.awaitSingle
 import no.fint.event.model.Event
 import no.fint.event.model.health.Health
 import no.fintlabs.testrunner.auth.AuthService
-import no.fintlabs.testrunner.exception.InvalidAuthenticationException
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -16,19 +14,19 @@ import org.springframework.web.reactive.function.client.bodyToMono
 
 @Service
 class FintApiService(
-    val authService: AuthService,
-    val webClient: WebClient
+    private val authService: AuthService,
+    private val webClient: WebClient
 ) {
 
-    suspend fun getLastUpdated(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
-        getLong(baseUrl, "${endpoint}/last-updated", "lastUpdated", orgName, clientName)
+    suspend fun getLastUpdated(baseUrl: String, endpoint: String, orgName: String): Long =
+        getLong(baseUrl, "${endpoint}/last-updated", "lastUpdated", orgName)
 
-    suspend fun getCacheSize(baseUrl: String, endpoint: String, orgName: String, clientName: String): Long =
-        getLong(baseUrl, "${endpoint}/cache/size", "size", orgName, clientName)
+    suspend fun getCacheSize(baseUrl: String, endpoint: String, orgName: String): Long =
+        getLong(baseUrl, "${endpoint}/cache/size", "size", orgName)
 
-    suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String, clientName: String): Event<Health> {
+    suspend fun getHealthEvent(baseUrl: String, endpoint: String, orgName: String): Event<Health> {
         try {
-            val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
+            val headers = createAuthorizationHeader(baseUrl, orgName)
             return webClient.get()
                 .uri("$baseUrl$endpoint/admin/health")
                 .headers { it.addAll(headers) }
@@ -45,10 +43,9 @@ class FintApiService(
         baseUrl: String,
         endpoint: String,
         mapKey: String,
-        orgName: String,
-        clientName: String
+        orgName: String
     ): Long {
-        val headers = createAuthorizationHeader(baseUrl, orgName, clientName)
+        val headers = createAuthorizationHeader(baseUrl, orgName)
         return try {
             val responseMap = webClient.get()
                 .uri("$baseUrl$endpoint")
@@ -68,15 +65,13 @@ class FintApiService(
         }
     }
 
-    private suspend fun createAuthorizationHeader(baseUrl: String, orgName: String, clientName: String): HttpHeaders =
+    private suspend fun createAuthorizationHeader(baseUrl: String, orgId: String): HttpHeaders =
         HttpHeaders().apply {
             if (baseUrl.contains("play-with-fint")) {
                 set("x-org-id", "pwf.no")
                 set("x-client", "pwf_no_client")
             } else {
-                if (StringUtil.isNullOrEmpty(clientName))
-                    throw InvalidAuthenticationException(clientName)
-                set("Authorization", "Bearer ${authService.getNewAccessToken(orgName, clientName)}")
+                set("Authorization", "Bearer ${authService.getNewAccessToken(orgId)}")
             }
         }
 
