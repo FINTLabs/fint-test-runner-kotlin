@@ -1,6 +1,7 @@
 package no.fintlabs.testrunner.auth
 
 import kotlinx.coroutines.reactor.awaitSingle
+import no.fintlabs.testrunner.auth.AuthConstants.CLIENT_NAME
 import no.fintlabs.testrunner.auth.model.AuthObject
 import no.fintlabs.testrunner.auth.model.AuthResponse
 import no.fintlabs.testrunner.auth.model.ClientRequest
@@ -32,9 +33,9 @@ class FlaisGatewayClient(
             .bodyToMono(AuthObject::class.java)
             .awaitSingle()
 
-    suspend fun getEncryptedAuthResponse(orgId: String, clientName: String): AuthResponse? =
+    suspend fun getEncryptedAuthResponse(orgId: String): AuthResponse? =
         client.get()
-            .uri(createDnUri(orgId, clientName))
+            .uri(createDnUri(orgId))
             .retrieve()
             .bodyToMono(AuthResponse::class.java)
             .awaitSingle()
@@ -42,8 +43,8 @@ class FlaisGatewayClient(
 
     private fun clientExists(authResponse: AuthResponse) = authResponse.authObject != null
 
-    private fun createDnUri(orgId: String, clientName: String): String =
-        "/client/cn=$clientName,ou=clients,ou=${formatOrgId(orgId)},ou=organisations,o=fint"
+    private fun createDnUri(orgId: String): String =
+        "/client/cn=$CLIENT_NAME,ou=clients,ou=${formatOrgId(orgId)},ou=organisations,o=fint"
 
     private fun formatOrgId(orgId: String) =
         orgId.replace(".", "_")

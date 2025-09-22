@@ -1,7 +1,7 @@
 package no.fintlabs.testrunner.auth.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.util.UUID
+import no.fintlabs.testrunner.auth.AuthConstants.CLIENT_NAME
 
 class ClientRequest(
     @get:JsonProperty("object")
@@ -15,10 +15,9 @@ class ClientRequest(
 }
 
 class ClientData {
-
-    val name: String = UUID.randomUUID().toString()
-    val shortDescription: String = "Autogenerert relasjontester"
-    val note: String = "En generert klient for relasjon testing"
+    val name: String = CLIENT_NAME
+    val shortDescription: String = "Autogenerert basistest klient"
+    val note: String = "En generert klient for basistest"
 
     // Keep managed so user cannot access client credentials
     val managed = true

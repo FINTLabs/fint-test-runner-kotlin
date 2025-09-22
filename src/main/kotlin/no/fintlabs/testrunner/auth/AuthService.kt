@@ -46,7 +46,7 @@ class AuthService(
     }
 
     private suspend fun fetchNewAccessToken(orgId: String): TokenResponse =
-        flaisGatewayClient.getEncryptedAuthResponse(orgId, CLIENT_NAME)
+        flaisGatewayClient.getEncryptedAuthResponse(orgId)
             ?.let { flaisGatewayClient.decryptAuthResponse(it) }
             ?.let { idpClient.getTokenResponse(it) }
             ?: flaisGatewayClient.createClient(orgId).let { fetchNewAccessToken(orgId) }
