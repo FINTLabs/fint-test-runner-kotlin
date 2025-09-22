@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
+import kotlin.math.log
 
 @Service
 class FintApiService(
@@ -58,9 +59,11 @@ class FintApiService(
                 ?: (responseMap[mapKey] as? String)?.toLongOrNull()
                 ?: -1L
         } catch (e: WebClientResponseException){
-            if (e.statusCode.equals(HttpStatus.FORBIDDEN)) {}
-            return -403L
+            if (e.statusCode.equals(HttpStatus.FORBIDDEN))
+                println(e)
+                return -403L
         } catch (e: Exception){
+            print(e.stackTrace)
             return -1L
         }
     }

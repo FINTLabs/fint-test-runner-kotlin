@@ -19,12 +19,13 @@ class TestRunnerService(
         resourceRepository.getResources(testRequest.endpoint)?.let { resources ->
             createTestResult(orgName, testRequest, resources)
         } ?: TestResult(
-            emptyList(),
+            emptySet(),
             "Sorry but we can't find the service: ${testRequest.baseUrl}${testRequest.endpoint}"
         )
 
     private suspend fun createTestResult(orgName: String, testRequest: TestRequest, resources: MutableList<String>): TestResult =
         coroutineScope {
+            println("Creating reslut for test ${testRequest}")
             val resourceResults = resources.map { resource ->
                 async {
                     val resourceResult = ResourceResult(
@@ -37,7 +38,7 @@ class TestRunnerService(
                 }
             }.awaitAll()
 
-            TestResult(resourceResults)
+            TestResult(resourceResults.toSet())
         }
 
 }

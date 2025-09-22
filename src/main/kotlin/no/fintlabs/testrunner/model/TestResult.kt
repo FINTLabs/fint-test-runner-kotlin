@@ -1,6 +1,6 @@
 package no.fintlabs.testrunner.model
 
 data class TestResult(
-    val resourceResults: List<ResourceResult>,
+    val resourceResults: Set<ResourceResult>,
     val message: String = ""
 )
