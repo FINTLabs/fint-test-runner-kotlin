@@ -13,7 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient
 @Component
 class FlaisGatewayClient(
     @Qualifier("gatewayWebClient")
-    val client: WebClient,
+    private val client: WebClient,
 ) {
 
     suspend fun createClient(orgId: String): AuthResponse? =
