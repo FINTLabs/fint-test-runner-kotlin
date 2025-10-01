@@ -2,7 +2,6 @@ package no.fintlabs.testrunner.auth
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import no.fintlabs.testrunner.auth.AuthConstants.CLIENT_NAME
 import no.fintlabs.testrunner.auth.model.TokenResponse
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
