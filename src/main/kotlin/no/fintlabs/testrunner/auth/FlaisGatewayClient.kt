@@ -44,10 +44,17 @@ class FlaisGatewayClient(
     private fun clientExists(authResponse: AuthResponse) = authResponse.authObject != null
 
     private fun createDnUri(orgId: String): String =
-        "/client/cn=$CLIENT_NAME,ou=clients,ou=${formatOrgId(orgId)},ou=organisations,o=fint"
+        "/client/cn=${createCn(orgId)},ou=clients,ou=${formatOrgIdToUnderDash(orgId)},ou=organisations,o=fint"
 
-    private fun formatOrgId(orgId: String) =
+    private fun createCn(orgId: String) =
+        "$CLIENT_NAME@client.${formatOrgIdToDots(orgId)}"
+
+    private fun formatOrgIdToUnderDash(orgId: String) =
         orgId.replace(".", "_")
             .replace("-", "_")
+
+    private fun formatOrgIdToDots(orgId: String) =
+        orgId.replace("-", ".")
+            .replace("_", ".")
 
 }
