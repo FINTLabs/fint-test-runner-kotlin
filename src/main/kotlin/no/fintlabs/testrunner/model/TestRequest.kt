@@ -17,6 +17,5 @@ data class TestRequest(
         regexp = "^/([a-zA-Z]+)(/[a-zA-Z]+)*\$",
         message = "endpoint must start with '/' and contain valid path segments without a trailing slash"
     )
-    val endpoint: String,
-    val clientName: String
+    val endpoint: String
 )

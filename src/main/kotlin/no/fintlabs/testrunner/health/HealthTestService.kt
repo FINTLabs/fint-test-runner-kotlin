@@ -21,7 +21,6 @@ class HealthTestService(
                     testRequest.baseUrl,
                     testRequest.endpoint,
                     orgName,
-                    testRequest.clientName
                 )
             )
         } catch (webClientResponseException: WebClientResponseException) {

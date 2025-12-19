@@ -1,9 +1,10 @@
 package no.fintlabs.testrunner.auth.model
 
-import no.fintlabs.testrunner.auth.model.AuthObject
+import com.fasterxml.jackson.annotation.JsonProperty
 
 data class AuthResponse(
-    val `object`: AuthObject,
+    @get:JsonProperty("object")
+    val authObject: AuthObject?,
     val orgId: String,
     val operation: String
 )
